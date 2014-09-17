@@ -6,8 +6,8 @@ var MAGIC = 0xd9b4bef9;
 var MAGICTEST = 0x0709110B;
 
 function writeUInt64LE(buffer, value, offset) {
-  buffer.writeInt32LE(value & -1, offset)
-  buffer.writeUInt32LE(Math.floor(value / 0x100000000), offset + 4)
+  buffer.writeInt32LE(value & -1, offset);
+  buffer.writeUInt32LE(Math.floor(value / 0x100000000), offset + 4);
 }
 
 function buildMessage(command, payload) {
@@ -60,10 +60,10 @@ function buildVersion() {
   versionMessage[pos] = 0; // UA string (skipped)
   pos += 1;
 
-//  versionMessage[pos] = userAgentLength // UA length
-//  pos += 1;
-//  versionMessage.write("grouik", pos); // UA value
-//  pos += userAgentLength;
+  //  versionMessage[pos] = userAgentLength // UA length
+  //  pos += 1;
+  //  versionMessage.write("grouik", pos); // UA value
+  //  pos += userAgentLength;
 
   versionMessage.writeUInt32LE(0, pos); // height (last known block)
 
@@ -104,5 +104,5 @@ client.on('end', function() {
 });
 
 client.on('close', function() {
-    console.log('Connection closed');
+  console.log('Connection closed');
 });
