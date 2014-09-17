@@ -1,6 +1,7 @@
 var hash = require('hash.js');
 var net = require('net');
 var crypto = require('crypto');
+var btcBuffer = require('bitcoin-buffer');
 
 var MAGIC = 0xd9b4bef9;
 var MAGICTEST = 0x0709110B;
@@ -70,6 +71,61 @@ function buildVersion() {
   return versionMessage;
 }
 
+function Message(payload) {
+  var pos = 0;
+  this.magic = payload.readUInt32LE(pos);
+  pos += 4;
+  var endCommand = pos + 12;
+  for (var i = pos; i < pos + 12; ++i)
+    if (payload[i] === 0) {
+      endCommand = i;
+      break;
+    }
+  this.command = payload.toString('utf8', pos, endCommand);
+  pos += 12;
+  this.length = payload.readUInt32LE(pos);
+  pos += 4;
+  this.checksum = payload.readUInt32LE(pos);
+  pos += 4;
+  this.payload = new Buffer(this.length);
+  payload.copy(this.payload, 0, pos, pos + this.length);
+}
+
+function InvVector(pos, payload) {
+  this.type = payload.readUInt32LE(pos);
+  pos += 4;
+  this.hash = new Buffer(32);
+  payload.copy(this.hash, 0, pos, pos + 32);
+}
+
+function Inv(payload) {
+  var pos = 0;
+  var len = payload.readUInt8(pos);
+  switch (len) {
+    case 0xfd:
+      this.count = payload.readUInt16LE(pos);
+      pos += 2;
+      break;
+    case 0xfe:
+      this.count = payload.readUInt32LE(pos);
+      pos += 4;
+      break;
+    case 0xff:
+      this.count = btcBuffer.readUInt64LE(payload, pos);
+      pos += 8;
+      break;
+    default:
+      this.count = len;
+      pos += 1;
+      break;
+  }
+  for (var i = 0; i < this.count; i++) {
+    var invVector = new InvVector(pos, payload);
+    pos += 36;
+    console.log("invVector: " + invVector.type + " " + invVector.hash.toString('hex'));
+  }
+}
+
 // test
 var payload = buildMessage("version", buildVersion());
 //console.log(payload);
@@ -88,9 +144,24 @@ client.connect(port, ip, function() { //'connect' listener
 });
 
 client.on('data', function(data) {
-  console.log('got data');
-  console.log(data);
-  client.end();
+  if (data.length < 16)
+    throw new Error('invalid data: ' + data);
+  var message = new Message(data);
+  switch (message.command) {
+    case "version":
+      console.log("got version");
+      break;
+    case "inv":
+      console.log("got inventory command");
+      var inv = new Inv(message.payload);
+      break;
+    case "addr":
+      console.log("got addresses command");
+      break;
+    default:
+      console.log("Unkown command: '" + command + "'");
+  }
+  //  client.end();
 });
 
 
