@@ -1,3 +1,5 @@
+var btcBuffer = require('bitcoin-buffer');
+
 var NetAddr = require('../structures/netaddr.js');
 
 module.exports = Addr;
@@ -8,5 +10,6 @@ function Addr(payload) {
   pos = countAndPos.offset;
   this.count = countAndPos.res;
   var netAddr = new NetAddr();
-  this.netAddr = netAddr.unpack(pos, payload);
+  netAddr.unpack(pos, payload);
+  this.netAddr = netAddr;
 }
