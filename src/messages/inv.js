@@ -8,9 +8,11 @@ function Inv(payload) {
   var countAndPos = btcBuffer.readVarInt(payload, pos);
   pos = countAndPos.offset;
   this.count = countAndPos.res;
+  this.invVectors = [];
   for (var i = 0; i < this.count; i++) {
     var invVector = new InvVector(pos, payload);
     pos += 36;
-    console.log("invVector: " + invVector.type + " " + invVector.hash.toString('hex'));
+    //    console.log("invVector: " + invVector.type + " " + invVector.hash.toString('hex'));
+    this.invVectors.push(invVector);
   }
 }
