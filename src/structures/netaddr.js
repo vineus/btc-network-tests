@@ -15,7 +15,7 @@ NetAddr.prototype.unpack = function(pos, binary) {
   this.ip = new Buffer(16);
   binary.copy(this.ip, 0, pos, pos + 16);
   pos += 16;
-  this.port = binary.readUInt8(pos);
+  this.port = binary.readInt16BE(pos);
 };
 
 NetAddr.prototype.pack = function() {
@@ -32,4 +32,8 @@ NetAddr.prototype.pack = function() {
   pos += 16;
   netAddr.writeUInt16BE(this.port, pos);
   return netAddr;
+};
+
+NetAddr.prototype.toString = function() {
+  return this.ip.toString('hex') + ":" + this.port;
 };

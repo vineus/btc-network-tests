@@ -16,6 +16,10 @@ function Message(payload, command) {
 Message.prototype.unpack = function(binary) {
   var pos = 0;
   this.magic = binary.readUInt32LE(pos);
+  if (this.magic !== btcConstants.main.magic &&
+    this.magic !== btcConstants.test.magic) {
+    return false;
+  }
   pos += 4;
   var endCommand = pos + 12;
   for (var i = pos; i < pos + 12; ++i)
@@ -31,6 +35,7 @@ Message.prototype.unpack = function(binary) {
   pos += 4;
   this.payload = new Buffer(this.length);
   binary.copy(this.payload, 0, pos, pos + this.length);
+  return true;
 };
 
 Message.prototype.pack = function() {
